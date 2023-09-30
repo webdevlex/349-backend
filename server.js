@@ -1,16 +1,15 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
-const databaseConnect = require("./database");
+const connectToDatabase = require("./database");
 const cors = require("cors");
 
-databaseConnect();
+connectToDatabase();
 
-app.use(express.json()).use(cors());
-
-app.get("/", (req, res) => {
-	res.send("hello world");
-});
+app
+	.use(express.json())
+	.use(cors())
+	.use("/api/users", require("./routes/users"));
 
 const PORT = process.env.PORT || 5000;
 

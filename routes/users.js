@@ -58,7 +58,6 @@ router.post("/signin", async (req, res) => {
 
 router.post("/add-movie-to-playlist", async (req, res) => {
 	try {
-		console.log(req.body);
 		const { movie, user_id } = req.body;
 		var docRef = await db.collection("users").doc(user_id).get();
 		var user = docRef.data();
@@ -69,6 +68,32 @@ router.post("/add-movie-to-playlist", async (req, res) => {
 				playlist: [...user.playlist, movie],
 				playlistIds: [...user.playlistIds, movie.id],
 			});
+
+		var docRef = await db.collection("users").doc(user_id).get();
+		var user = docRef.data();
+
+		return res.status(200).json({ ...user, user_id });
+	} catch (e) {
+		console.log(e.message);
+		res.status(500).json({ error: "Server error." });
+	}
+});
+
+router.patch("/remove-movie-from-playlist", async (req, res) => {
+	try {
+		const { movie_id, user_id } = req.body;
+		var docRef = await db.collection("users").doc(user_id).get();
+		var user = docRef.data();
+
+		const filteredPlaylist = user.playlist.filter(
+			(movie) => movie.id !== movie_id
+		);
+		const filteredIds = user.playlistIds.filter((id) => id !== movie_id);
+
+		db.collection("users").doc(user_id).update({
+			playlist: filteredPlaylist,
+			playlistIds: filteredIds,
+		});
 
 		var docRef = await db.collection("users").doc(user_id).get();
 		var user = docRef.data();

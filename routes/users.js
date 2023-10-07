@@ -59,22 +59,21 @@ router.post("/signin", async (req, res) => {
 router.post("/add-movie-to-playlist", async (req, res) => {
 	try {
 		const { movie, user_id } = req.body;
-		var docRef = await db.collection("users").doc(user_id).get();
-		var user = docRef.data();
 
-		db.collection("users")
-			.doc(user_id)
-			.update({
-				playlist: [...user.playlist, movie],
-				playlistIds: [...user.playlistIds, movie.id],
-			});
+		// Update the user document with the new movie
+		const userRef = db.collection("users").doc(user_id);
+		await userRef.update({
+			playlist: admin.firestore.FieldValue.arrayUnion(movie),
+			playlistIds: admin.firestore.FieldValue.arrayUnion(movie.id),
+		});
 
-		var docRef = await db.collection("users").doc(user_id).get();
-		var user = docRef.data();
+		// Retrieve the updated user document
+		const userDoc = await userRef.get();
+		const updatedUser = userDoc.data();
 
-		return res.status(200).json({ ...user, user_id });
+		return res.status(200).json({ ...updatedUser, user_id });
 	} catch (e) {
-		console.log(e.message);
+		console.error(e.message);
 		res.status(500).json({ error: "Server error." });
 	}
 });
@@ -82,25 +81,31 @@ router.post("/add-movie-to-playlist", async (req, res) => {
 router.patch("/remove-movie-from-playlist", async (req, res) => {
 	try {
 		const { movie_id, user_id } = req.body;
-		var docRef = await db.collection("users").doc(user_id).get();
-		var user = docRef.data();
 
+		// Get the user document
+		const userRef = db.collection("users").doc(user_id);
+		const userDoc = await userRef.get();
+		const user = userDoc.data();
+
+		// Filter the playlist and playlistIds arrays
 		const filteredPlaylist = user.playlist.filter(
 			(movie) => movie.id !== movie_id
 		);
 		const filteredIds = user.playlistIds.filter((id) => id !== movie_id);
 
-		db.collection("users").doc(user_id).update({
+		// Update the user document with the filtered arrays
+		await userRef.update({
 			playlist: filteredPlaylist,
 			playlistIds: filteredIds,
 		});
 
-		var docRef = await db.collection("users").doc(user_id).get();
-		var user = docRef.data();
+		// Retrieve the updated user document
+		const updatedUserDoc = await userRef.get();
+		const updatedUser = updatedUserDoc.data();
 
-		return res.status(200).json({ ...user, user_id });
+		return res.status(200).json({ ...updatedUser, user_id });
 	} catch (e) {
-		console.log(e.message);
+		console.error(e.message);
 		res.status(500).json({ error: "Server error." });
 	}
 });

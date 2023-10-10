@@ -4,6 +4,7 @@ const router = express.Router();
 var admin = require("firebase-admin");
 const db = admin.firestore();
 const Users = db.collection("users");
+const bcrypt = require("bcrypt");
 
 router.post("/signup", async (req, res) => {
 	const dbQuery = Users;
@@ -15,7 +16,7 @@ router.post("/signup", async (req, res) => {
 
 	const newUser = {
 		email: req.body.email,
-		password: req.body.password,
+		password: await bcrypt.hash(req.body.password, 10), // Hash the password
 		playlist: [],
 		playlistIds: [],
 	};
@@ -46,7 +47,11 @@ router.post("/signin", async (req, res) => {
 		});
 
 		const user = result[0];
-		if (user.password !== req.body.password) {
+		const passwordMatch = await bcrypt.compare(
+			req.body.password,
+			user.password
+		); // Compare hashed password
+		if (!passwordMatch) {
 			return res.status(400).json({ error: "Invalid credentials." });
 		}
 		return res.status(200).json({ ...user, user_id });

@@ -47,6 +47,8 @@ npm install
 **5. Download the backend and frontend .env files and place them in their respective folders:**
 https://drive.google.com/drive/folders/190CuRyhaO19Q8rBs-C8rMBjilU-WHE-L?usp=sharing
 
+Tip: make sure to inlcude the "." in the file name ".env"
+
 ```
 Project
 ├── 349-frontend
